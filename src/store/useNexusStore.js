@@ -151,6 +151,20 @@ export const useNexusStore = create((set, get) => ({
     }
   },
 
+  // Action: Stop/cancel currently executing prompt
+  stopExecutingPrompt: async () => {
+    const { currentTaskId } = get()
+    set({ status: 'FAILED' })
+    
+    if (currentTaskId) {
+      try {
+        await api.post(`/tasks/${currentTaskId}/stop`)
+      } catch (error) {
+        console.error('[Store Error] stopExecutingPrompt failed:', error)
+      }
+    }
+  },
+
   // Action: Reset store
   resetStore: () => set({
     currentTaskId: null,
