@@ -114,7 +114,10 @@ export const useStore = create((set, get) => ({
     cpu: 24,
     memory: 42.8,
     dbConnections: 14,
-    latency: 12
+    latency: 12,
+    tokenThroughput: 350,
+    rateLimitActive: false,
+    rateLimitCountdown: 0
   },
 
   setActiveTab: (tab) => set({ activeTab: tab }),
@@ -158,10 +161,12 @@ export const useStore = create((set, get) => ({
       // Randomize metrics slightly during execution
       set((state) => ({
         systemMetrics: {
+          ...state.systemMetrics,
           cpu: Math.floor(Math.random() * 40) + 50, // 50% - 90%
           memory: parseFloat((42.8 + Math.random() * 5).toFixed(1)),
           dbConnections: Math.floor(Math.random() * 5) + 15,
-          latency: Math.floor(Math.random() * 15) + 20
+          latency: Math.floor(Math.random() * 15) + 20,
+          tokenThroughput: state.systemMetrics.rateLimitActive ? 0 : Math.floor(Math.random() * 150) + 500
         }
       }));
     }
@@ -248,10 +253,12 @@ public class SecurityConfiguration {
         code: generatedCode
       },
       systemMetrics: {
+        ...state.systemMetrics,
         cpu: 18,
         memory: 43.1,
         dbConnections: 14,
-        latency: 10
+        latency: 10,
+        tokenThroughput: state.systemMetrics.rateLimitActive ? 0 : 350
       }
     }));
 
@@ -271,15 +278,57 @@ public class SecurityConfiguration {
       const latDelta = Math.floor(Math.random() * 5) - 2; // -2ms to +2ms
       const newLat = Math.max(5, Math.min(50, state.systemMetrics.latency + latDelta));
 
+      // Handle Rate Limit Countdown and Throughput Oscillation
+      let rateLimitCountdown = state.systemMetrics.rateLimitCountdown || 0;
+      let rateLimitActive = state.systemMetrics.rateLimitActive || false;
+      if (rateLimitActive && rateLimitCountdown > 0) {
+        rateLimitCountdown -= 1;
+        if (rateLimitCountdown === 0) {
+          rateLimitActive = false;
+        }
+      }
+
+      const tpDelta = Math.floor(Math.random() * 40) - 20; // -20 to +20
+      const currentTp = state.systemMetrics.tokenThroughput ?? 350;
+      const newTp = rateLimitActive ? 0 : Math.max(100, Math.min(800, currentTp + tpDelta));
+
       return {
         systemMetrics: {
           cpu: newCpu,
           memory: newMem,
           dbConnections: state.systemMetrics.dbConnections,
-          latency: newLat
+          latency: newLat,
+          tokenThroughput: newTp,
+          rateLimitActive,
+          rateLimitCountdown
         }
       };
     });
+  },
+
+  setRateLimit: (active, countdown = 15) => {
+    set((state) => ({
+      systemMetrics: {
+        ...state.systemMetrics,
+        rateLimitActive: active,
+        rateLimitCountdown: active ? countdown : 0,
+        tokenThroughput: active ? 0 : 350
+      }
+    }));
+  },
+
+  resetMetrics: () => {
+    set((state) => ({
+      systemMetrics: {
+        cpu: 24,
+        memory: 42.8,
+        dbConnections: 14,
+        latency: 12,
+        tokenThroughput: 350,
+        rateLimitActive: false,
+        rateLimitCountdown: 0
+      }
+    }));
   }
 }));
 

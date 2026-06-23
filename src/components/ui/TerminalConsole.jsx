@@ -21,7 +21,7 @@ export default function TerminalConsole() {
   }, [logs])
 
   return (
-    <div className="glass-panel rounded-2xl p-5 flex-1 flex flex-col min-h-0">
+    <div className="glass-panel rounded-2xl p-5 flex flex-col min-h-0 h-[350px] xl:h-auto xl:flex-1">
       <div className="flex items-center justify-between pb-3 border-b border-zinc-800/80 mb-3">
         <div className="flex items-center gap-2">
           <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-sm shadow-emerald-500 animate-pulse" />

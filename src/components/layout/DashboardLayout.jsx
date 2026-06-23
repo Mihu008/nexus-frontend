@@ -1,14 +1,18 @@
-import React from 'react'
-import { motion } from 'framer-motion'
+import React, { useState } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import {
   Terminal,
   Cpu,
   History,
   Globe,
   Activity,
-  Database
+  Database,
+  Menu,
+  X
 } from 'lucide-react'
 import useStore from '../../store/useStore'
+import useNexusStore from '../../store/useNexusStore'
+import ArtifactVault from '../ui/ArtifactVault'
 
 export default function DashboardLayout({ children }) {
   const {
@@ -17,9 +21,17 @@ export default function DashboardLayout({ children }) {
     systemMetrics
   } = useStore()
 
+  const {
+    isArtifactPanelOpen,
+    closeArtifactPanel,
+    activeArtifact
+  } = useNexusStore()
+
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false)
+
   // Sidebar navigation mapping
   const navItems = [
-    { id: 'agent-control', label: 'Agent Control', icon: Terminal },
+    { id: 'agent-control', label: 'Chat Room', icon: Terminal },
     { id: 'task-history', label: 'Task History', icon: History },
     { id: 'system-health', label: 'System Health', icon: Cpu }
   ]
@@ -39,8 +51,94 @@ export default function DashboardLayout({ children }) {
         <div className="glow-bg bottom-[-20%] right-[-10%]" style={{ animationDelay: '-5s' }} />
       </div>
 
+      {/* Mobile Sidebar Overlay Drawer */}
+      <AnimatePresence>
+        {isSidebarOpen && (
+          <>
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsSidebarOpen(false)}
+              className="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-40 lg:hidden"
+            />
+            {/* Sidebar drawer */}
+            <motion.aside
+              initial={{ x: '-100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '-100%' }}
+              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+              className="fixed inset-y-0 left-0 w-64 bg-zinc-950/95 border-r border-zinc-900/90 flex flex-col z-50 lg:hidden backdrop-blur-xl"
+            >
+              {/* Branding header with close button */}
+              <div className="h-16 px-6 border-b border-zinc-900 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-indigo-600 to-emerald-500 flex items-center justify-center shadow-lg shadow-indigo-500/20">
+                    <Cpu className="w-4.5 h-4.5 text-white animate-pulse" />
+                  </div>
+                  <div>
+                    <h1 className="text-md font-bold tracking-widest bg-gradient-to-r from-slate-100 to-zinc-400 bg-clip-text text-transparent">
+                      NEXUS AI
+                    </h1>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setIsSidebarOpen(false)}
+                  className="p-1 text-zinc-400 hover:text-white rounded-lg hover:bg-zinc-900/50 cursor-pointer"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Nav items */}
+              <nav className="flex-1 px-4 py-6 space-y-2">
+                {navItems.map((item) => {
+                  const Icon = item.icon
+                  const isActive = activeTab === item.id
+                  return (
+                    <button
+                      key={item.id}
+                      onClick={() => {
+                        setActiveTab(item.id)
+                        setIsSidebarOpen(false)
+                      }}
+                      className={`w-full group relative flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 text-sm font-medium cursor-pointer ${
+                        isActive
+                          ? 'text-white font-semibold'
+                          : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900/40'
+                      }`}
+                    >
+                      {isActive && (
+                        <div className="absolute inset-0 bg-gradient-to-r from-indigo-950/40 to-zinc-900/60 border border-indigo-500/30 rounded-xl" />
+                      )}
+                      <Icon className={`w-4 h-4 z-10 ${isActive ? 'text-indigo-400' : 'text-zinc-500'}`} />
+                      <span className="z-10">{item.label}</span>
+                    </button>
+                  );
+                })}
+              </nav>
+
+              {/* Footer */}
+              <div className="p-4 border-t border-zinc-900 bg-zinc-950/40 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="w-7 h-7 rounded-full bg-zinc-800 flex items-center justify-center text-xs font-semibold text-indigo-400">
+                    SE
+                  </div>
+                  <div>
+                    <p className="text-xs font-semibold text-zinc-300">Sr. Engineer</p>
+                    <p className="text-[10px] text-zinc-500">operator-9</p>
+                  </div>
+                </div>
+                <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-sm shadow-emerald-500 animate-ping" />
+              </div>
+            </motion.aside>
+          </>
+        )}
+      </AnimatePresence>
+
       {/* FIXED SIDEBAR (width: 64) */}
-      <aside className="w-64 flex-shrink-0 bg-zinc-950/80 border-r border-zinc-900/90 flex flex-col z-10 backdrop-blur-xl">
+      <aside className="hidden lg:flex w-64 flex-shrink-0 bg-zinc-950/80 border-r border-zinc-900/90 flex flex-col z-10 backdrop-blur-xl">
         {/* Branding header */}
         <div className="h-16 px-6 border-b border-zinc-900 flex items-center gap-3">
           <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-indigo-600 to-emerald-500 flex items-center justify-center shadow-lg shadow-indigo-500/20">
@@ -110,9 +208,16 @@ export default function DashboardLayout({ children }) {
       <main className="flex-1 flex flex-col min-w-0 z-10 h-full overflow-hidden">
         
         {/* Top Status Bar */}
-        <header className="h-16 px-8 border-b border-zinc-900 bg-zinc-950/30 backdrop-blur-md flex items-center justify-between flex-shrink-0">
-          <div className="flex items-center gap-6">
-            <h2 className="text-sm font-semibold tracking-wider uppercase text-zinc-400">
+        <header className="h-16 px-4 md:px-8 border-b border-zinc-900 bg-zinc-950/30 backdrop-blur-md flex items-center justify-between flex-shrink-0">
+          <div className="flex items-center gap-3 md:gap-6">
+            <button
+              onClick={() => setIsSidebarOpen(true)}
+              className="lg:hidden p-1.5 text-zinc-400 hover:text-white rounded-lg hover:bg-zinc-900/50 cursor-pointer"
+              title="Open menu"
+            >
+              <Menu className="w-5 h-5" />
+            </button>
+            <h2 className="text-xs md:text-sm font-semibold tracking-wider uppercase text-zinc-400">
               {activeLabel}
             </h2>
             <div className="h-4 w-px bg-zinc-800" />
@@ -147,6 +252,49 @@ export default function DashboardLayout({ children }) {
           {children}
         </div>
       </main>
+
+      {/* Sliding Context Panel for Artifact Vault */}
+      <AnimatePresence>
+        {isArtifactPanelOpen && activeArtifact && (
+          <>
+            {/* Backdrop overlays background click dismiss */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 0.5 }}
+              exit={{ opacity: 0 }}
+              onClick={closeArtifactPanel}
+              className="fixed inset-0 bg-slate-950/65 backdrop-blur-sm z-30 lg:z-20"
+            />
+            {/* Sliding Container */}
+            <motion.div
+              initial={{ x: '100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '100%' }}
+              transition={{ type: 'spring', damping: 28, stiffness: 220 }}
+              className="fixed inset-y-0 right-0 w-full sm:w-[500px] md:w-[600px] lg:w-[650px] bg-zinc-950/98 border-l border-zinc-900 z-40 shadow-2xl flex flex-col min-w-0"
+            >
+              {/* Top title area */}
+              <div className="h-16 px-6 border-b border-zinc-900 flex items-center justify-between bg-zinc-950 flex-shrink-0">
+                <span className="text-xs font-semibold uppercase tracking-wider text-indigo-400">
+                  Sliding Context Vault
+                </span>
+                <button
+                  onClick={closeArtifactPanel}
+                  className="p-1.5 text-zinc-400 hover:text-white rounded-lg hover:bg-zinc-900/50 cursor-pointer transition-colors"
+                  title="Close context panel"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              
+              {/* Injected Artifact Vault (fills up panel) */}
+              <div className="flex-1 min-h-0">
+                <ArtifactVault />
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </div>
   )
 }

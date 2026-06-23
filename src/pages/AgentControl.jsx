@@ -15,7 +15,7 @@ export default function AgentControl() {
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -10 }}
       transition={{ duration: 0.25 }}
-      className="h-full p-6 grid grid-cols-1 xl:grid-cols-5 gap-6 overflow-hidden"
+      className="h-full p-4 md:p-6 grid grid-cols-1 xl:grid-cols-5 gap-6 overflow-y-auto xl:overflow-hidden"
     >
       {/* Left Panel: Control Room (Grid span 2) */}
       <section className="xl:col-span-2 flex flex-col min-h-0 gap-6">

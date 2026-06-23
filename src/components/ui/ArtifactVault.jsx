@@ -194,7 +194,7 @@ export default function ArtifactVault() {
   // Premium, visually wowing standby layout when no active artifact is available
   if (!artifact) {
     return (
-      <div className="glass-panel rounded-2xl p-6 flex flex-col justify-center items-center h-full text-center relative overflow-hidden select-none">
+      <div className="p-6 flex flex-col justify-center items-center h-full text-center relative overflow-hidden select-none">
         <div className="absolute inset-0 bg-[radial-gradient(circle,rgba(99,102,241,0.03)_0%,rgba(0,0,0,0)_70%)] pointer-events-none" />
         <div className="w-12 h-12 rounded-xl bg-zinc-950 border border-zinc-900/60 flex items-center justify-center mb-4 text-indigo-400/90 shadow-lg shadow-indigo-500/5 animate-pulse">
           <FileText className="w-5.5 h-5.5" />
@@ -210,7 +210,7 @@ export default function ArtifactVault() {
   }
 
   return (
-    <div className="glass-panel rounded-2xl p-5 flex flex-col min-h-0 h-full">
+    <div className="p-5 flex flex-col min-h-0 h-full">
       <div className="flex items-center justify-between pb-4 border-b border-zinc-800/80 mb-4 flex-wrap gap-3">
         <div className="flex items-center gap-2.5">
           <div className="w-7 h-7 rounded-lg bg-indigo-950/80 border border-indigo-500/30 flex items-center justify-center">
